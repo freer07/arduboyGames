@@ -184,6 +184,7 @@ void loop() {
       arduboy.setCursor(0,0);
       arduboy.print("You Win");
       if (arduboy.justPressed(A_BUTTON)) {
+        reset();
         gamestate = 0;
       }
       break;
@@ -193,10 +194,25 @@ void loop() {
       arduboy.setCursor(0,0);
       arduboy.print("You Lose");
       if (arduboy.justPressed(A_BUTTON)) {
+        reset();
         gamestate = 0;
       }
       break;
   }
 
   arduboy.display();
+}
+
+void reset() {
+  ballx = 64;
+  bally = 0;
+  playery = 0;
+  cpuy = 0;
+  ballRight = -1;
+  ballDown = 1;
+  coolDown = 0;
+  cpuDiff = 0;
+  bounce = false;
+  playerPoints = 0;
+  cpuPoints = 0;
 }
