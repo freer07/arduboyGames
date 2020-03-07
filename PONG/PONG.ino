@@ -4,6 +4,15 @@
 #include <Arduboy2.h>
 Arduboy2 arduboy;
 
+const unsigned char PROGMEM PongPaddle[] =
+{
+// width, height,
+16, 24,
+0x00, 0x00, 0x00, 0xe0, 0x30, 0x18, 0x08, 0x08, 0x08, 0x08, 0x18, 0x30, 0xe0, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x0f, 0x18, 0x10, 0xf0, 0x10, 0x10, 0xf0, 0x10, 0x18, 0x0f, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+};
+
 int gamestate = 0;
 int ballx = 64;
 int bally = 0;
@@ -18,9 +27,13 @@ int cpux = 123;
 int cpuy = 0;
 int playerPoints = 0;
 int cpuPoints = 0;
-int cpuDiff = 0;
+int cpuDiff = 2;
 int coolDown = 0;
 bool bounce = false;
+int PongPaddlex = 0;
+int PongPaddley = 0;
+bool newBall = true;
+bool pause = false;
 
 void setup() {
   arduboy.begin();
@@ -28,13 +41,6 @@ void setup() {
   arduboy.initRandomSeed();
   arduboy.setFrameRate(60);
   arduboy.clear();
-
-  bally = random(10,54);
-  if (bally < 32) {
-    ballDown = 1;
-  } else {
-    ballDown = -1;
-  }
 }
 
 void loop() {
@@ -52,7 +58,16 @@ void loop() {
   switch (gamestate) {
     
      case 0:
-      //Title Screen
+     //Title Screen
+     
+      bally = random(20,44);
+      if (bally < 32) {
+      ballDown = 1;
+      } else {
+        ballDown = -1;
+      }
+      newBall = true;
+      drawBackground();
       arduboy.setCursor(0,0);
       arduboy.print("Title Screen");
       if (arduboy.justPressed(A_BUTTON)) {
@@ -75,6 +90,11 @@ void loop() {
       arduboy.fillRect(ballx, bally, ballSize, ballSize, WHITE);
       arduboy.fillRect(playerx, playery, paddleWidth, paddleHeight, WHITE);
       arduboy.fillRect(cpux, cpuy, paddleWidth, paddleHeight, WHITE);
+      
+      if(newBall) {
+        newBall = false;
+        pause = true;
+      }
 
       //does logic for cooldown
       if (coolDown > 0) {
@@ -163,15 +183,17 @@ void loop() {
         } else {
           cpuPoints ++;
         }
+        newBall = true;
         ballx = 64;
-        bally = random(10,54);
+        ballRight = -1; //neg numbers for left
+        bally = random(20,44);
         if (bally < 32) {
           ballDown = 1;
         } else {
           ballDown = -1;
         }
       }
-      if (arduboy.justPressed(A_BUTTON) || playerPoints == 5) {
+      if (playerPoints == 5) {
         gamestate = 2;
       }
       else if (cpuPoints == 5) {
@@ -181,6 +203,7 @@ void loop() {
       
     case 2:
       //Win Screen
+      drawBackground();
       arduboy.setCursor(0,0);
       arduboy.print("You Win");
       if (arduboy.justPressed(A_BUTTON)) {
@@ -191,6 +214,7 @@ void loop() {
       
     case 3:
       //Lose Screen
+      drawBackground();
       arduboy.setCursor(0,0);
       arduboy.print("You Lose");
       if (arduboy.justPressed(A_BUTTON)) {
@@ -201,6 +225,11 @@ void loop() {
   }
 
   arduboy.display();
+  
+  if(pause) {
+    pause = false;
+    delay(1000);
+  }
 }
 
 void reset() {
@@ -211,8 +240,15 @@ void reset() {
   ballRight = -1;
   ballDown = 1;
   coolDown = 0;
-  cpuDiff = 0;
   bounce = false;
   playerPoints = 0;
   cpuPoints = 0;
+}
+
+void drawBackground() {
+  for(int x = 0; x <= 112; x = x + 16) {
+    for(int y = -1; y <= 63; y = y + 24) {
+    Sprites::drawOverwrite(x, y, PongPaddle, 0);
+    }
+  }
 }
