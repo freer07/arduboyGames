@@ -34,12 +34,15 @@ int PongPaddlex = 0;
 int PongPaddley = 0;
 bool newBall = true;
 bool pause = false;
+int backGroundx = 0;
+int backGroundy = 0;
+bool subtract = false;
 
 void setup() {
   arduboy.begin();
   //Seed the random number generator
   arduboy.initRandomSeed();
-  arduboy.setFrameRate(60);
+  arduboy.setFrameRate(10);
   arduboy.clear();
 }
 
@@ -59,7 +62,6 @@ void loop() {
     
      case 0:
      //Title Screen
-     
       bally = random(20,44);
       if (bally < 32) {
       ballDown = 1;
@@ -72,6 +74,7 @@ void loop() {
       arduboy.print("Title Screen");
       if (arduboy.justPressed(A_BUTTON)) {
         gamestate = 1;
+        arduboy.setFrameRate(60);
       }
       break;
       
@@ -195,9 +198,11 @@ void loop() {
       }
       if (playerPoints == 5) {
         gamestate = 2;
+        arduboy.setFrameRate(10);
       }
       else if (cpuPoints == 5) {
         gamestate = 3;
+        arduboy.setFrameRate(10);
       }
       break;
       
@@ -246,9 +251,30 @@ void reset() {
 }
 
 void drawBackground() {
+  if(subtract) {
+    backGroundx --;
+  } else {
+    backGroundx ++;
+  }
+  if(backGroundx > 7 || backGroundx < 0) {
+    backGroundy ++;
+    if(backGroundx > 7) {
+      backGroundx = 7;
+      subtract = true;
+    } 
+    if (backGroundx < 0) {
+      backGroundx = 0;
+      subtract = false;
+    }
+    if(backGroundy > 2) {
+      backGroundy = 0;
+    }
+  }
   for(int x = 0; x <= 112; x = x + 16) {
     for(int y = -1; y <= 63; y = y + 24) {
-    Sprites::drawOverwrite(x, y, PongPaddle, 0);
+      if(x/16 == backGroundx && (y+1)/24 == backGroundy) {
+        Sprites::drawOverwrite(x, y, PongPaddle, 0);
+      }
     }
   }
 }
