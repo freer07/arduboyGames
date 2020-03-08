@@ -29,7 +29,7 @@ int cpux = 123;
 int cpuy = 0;
 int playerPoints = 0;
 int cpuPoints = 0;
-int cpuDiff = 1;
+int cpuDiff = 0;
 int coolDown = 0;
 bool bounce = false;
 int PongPaddlex = 0;
@@ -165,20 +165,16 @@ void loop() {
 
       if (bounce) {
         bounce = false;
+        cpuDiff = random(0,2);
         switch (cpuDiff) {
-          //easy
+          //slow
           case 0:
-            coolDown = 30;
+            coolDown = 15;
             break;
 
-          //med
+          //fast
           case 1:
-            coolDown = 20;
-            break;
-
-          //hard
-          case 2:
-            coolDown = 10;
+            coolDown = 0;
             break;
         }
       }
