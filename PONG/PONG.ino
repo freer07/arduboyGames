@@ -2,7 +2,9 @@
 //29/02/2020
 
 #include <Arduboy2.h>
+#include "Tinyfont.h"
 Arduboy2 arduboy;
+Tinyfont tinyfont = Tinyfont(arduboy.sBuffer, Arduboy2::width(), Arduboy2::height());
 
 const unsigned char PROGMEM PongPaddle[] =
 {
@@ -27,7 +29,7 @@ int cpux = 123;
 int cpuy = 0;
 int playerPoints = 0;
 int cpuPoints = 0;
-int cpuDiff = 2;
+int cpuDiff = 1;
 int coolDown = 0;
 bool bounce = false;
 int PongPaddlex = 0;
@@ -70,8 +72,10 @@ void loop() {
       }
       newBall = true;
       drawBackground();
-      arduboy.setCursor(0,0);
-      arduboy.print("Title Screen");
+      arduboy.setCursor(42,20);
+      arduboy.print("P O N G");
+      tinyfont.setCursor(26,40);
+      tinyfont.print("press A to play");
       if (arduboy.justPressed(A_BUTTON)) {
         gamestate = 1;
         arduboy.setFrameRate(60);
