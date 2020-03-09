@@ -209,8 +209,8 @@ void loop() {
     case 2:
       //Win Screen
       drawBackground();
-      arduboy.setCursor(0,0);
-      arduboy.print("You Win");
+      arduboy.setCursor(40,20);
+      arduboy.print("You Win!");
       if (arduboy.justPressed(A_BUTTON)) {
         reset();
         gamestate = 0;
@@ -220,8 +220,8 @@ void loop() {
     case 3:
       //Lose Screen
       drawBackground();
-      arduboy.setCursor(0,0);
-      arduboy.print("You Lose");
+      arduboy.setCursor(30,20);
+      arduboy.print("You Lose :(");
       if (arduboy.justPressed(A_BUTTON)) {
         reset();
         gamestate = 0;
