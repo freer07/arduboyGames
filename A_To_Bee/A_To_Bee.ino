@@ -1,6 +1,24 @@
 /*
  * Alex Freer
  * 21/03/2020
+ * 
+ * TODO:
+ * add lives
+ * wasps
+ * flowers -> random between the two
+ * counter for points
+ * increase difficulty with the number of points
+ * sounds 
+ * intro screen 
+ * lose screen
+ * credits screen
+ * 
+ * Maybe:
+ * other enemies like pest spray
+ * stinger
+ * boost
+ * save max score if possible
+ * 
  */
  
 #include <Arduboy2.h>
