@@ -3,9 +3,7 @@
  * 21/03/2020
  * 
  * TODO:
- * add lives
- * wasps
- * flowers -> random between the two
+ * Pause bee movemet and Display lives
  * counter for points
  * increase difficulty with the number of points
  * sounds 
@@ -22,7 +20,9 @@
  */
  
 #include <Arduboy2.h>
+#include "Tinyfont.h"
 Arduboy2 arduboy;
+Tinyfont tinyfont = Tinyfont(arduboy.sBuffer, Arduboy2::width(), Arduboy2::height());
 
 //flower2 size 16x16
 const unsigned char PROGMEM flower2[] =
@@ -92,40 +92,51 @@ const int arduboyTop = 0;
 const int arduboyBottom = 64;
 const int arduboyLeft = 0;
 const int arduboyRight = 128;
-int numOfWasps = 1;
+int numOfWasps = 4;
 const int maxNumOfWasps = 4;
 int lives = 3;
+bool hasFlower = false;
+int points = 0;
+int pause = 0;
 
 //Bee
 const int beeWidth = 11;
 const int beeHeight = 9;
 int beeX = 0;
-int beeY = 25;
+int beeY = 10;
 boolean movingLeft = false;
 
 //Wasps
 const int waspWidth = 13;
 const int waspHeight = 10;
-int wasp1X = 50;
+int wasp1X = 20;
 double wasp1Y = arduboyTop - waspHeight;
 bool wasp1Top = true;
+
 int wasp2X = -50;
-int wasp2Y = arduboyBottom;
+double wasp2Y = arduboyBottom;
 bool wasp2Top = false;
+
 int wasp3X = -50;
-int wasp3Y = arduboyTop - waspHeight;
+double wasp3Y = arduboyTop - waspHeight;
 bool wasp3Top = true;
+
 int wasp4X = -50;
-int wasp4Y = arduboyBottom;
+double wasp4Y = arduboyBottom;
 bool wasp4Top = false;
 
 //hive
 const int hiveX = 0;
-const int hiveY = 25;
+int hiveY = 25;
+int hiveWidth = 16;
+int hiveHeight = 16;
 
 //flower
 const int flowerWidth = 16;
 const int flowerHeight = 16;
+const int flowerX = arduboyRight - flowerWidth;
+int flowerY = 20;
+int flowerType = 1;
 
 
 void setup() {
@@ -148,27 +159,112 @@ void loop() {
   switch(gameState) {
     case 0://TitleScreen
     case 1://Game
-      moveBee();
+      if(pause > 0){
+        pause --;
+        arduboy.setCursor(40,32);
+        arduboy.print("Lives:");
+        arduboy.setCursor(76,32);
+        arduboy.print(lives);
+      } else {
+        moveBee();
+      }
       moveWasps();
       drawWasps();
       drawBee();
       drawHive();
+      drawFlower();
+      checkWaspCollision();
+      checkFlowerCollision();
+      checkHiveCollision();
+      break;
+    case 2://lose Screen
       break;
   }
 
   arduboy.display();
 }
 
+//Check Collisions
+//============================================================================================
+void checkHiveCollision() {
+  //Really only collides with one side but still good check
+  if(((beeX < hiveX + hiveWidth) && (beeX + beeWidth > hiveX)) && 
+    ((beeY + beeHeight > hiveY) && (beeY < hiveY + hiveHeight))) {
+    if(hasFlower) {
+      hasFlower = false;
+      points ++;
+      flowerY = random(0, arduboyBottom - flowerHeight);
+      flowerType = random(1,3);
+      points ++;
+    }
+  }
+}
+
+void checkFlowerCollision() {
+  if(((beeX < flowerX + flowerWidth) && (beeX + beeWidth > flowerX)) && 
+    ((beeY + beeHeight > flowerY) && (beeY < flowerY + flowerHeight))) {
+      if(!hasFlower) {
+        hasFlower = true; 
+        hiveY = random(0, arduboyBottom - hiveHeight);
+      }
+  }
+}
+
+void checkWaspCollision() {
+  if(((beeX < wasp1X + waspWidth) && (beeX + beeWidth > wasp1X)) && 
+    ((beeY + beeHeight > wasp1Y) && (beeY < wasp1Y + waspHeight))) {
+      waspCollision();
+      return;
+    } else if(((beeX < wasp2X + waspWidth) && (beeX + beeWidth > wasp2X)) && 
+    ((beeY + beeHeight > wasp2Y) && (beeY < wasp2Y + waspHeight))) {
+      waspCollision();
+      return;
+    } else if(((beeX < wasp3X + waspWidth) && (beeX + beeWidth > wasp3X)) && 
+    ((beeY + beeHeight > wasp3Y) && (beeY < wasp3Y + waspHeight))) {
+      waspCollision();
+      return;
+    } else if(((beeX < wasp4X + waspWidth) && (beeX + beeWidth > wasp4X)) && 
+    ((beeY + beeHeight > wasp4Y) && (beeY < wasp4Y + waspHeight))) {
+      waspCollision();
+      return;
+    }
+}
+
+void waspCollision() {
+  pause = 120;
+  lives --;
+  beeX = 0;
+  movingLeft = false;
+  hasFlower = false;
+  if(lives <= 0) {//lose game
+    gameState = 2;
+  }
+  //Play Sound
+}
+//============================================================================================
+
+
+//Wasp Logic
+//============================================================================================
 void moveWasps() {
   switch(numOfWasps) {
     case 1:
-      moveWasp(wasp1X, wasp1Y, 1);
+      moveWasp(1);
       break;
     case 2:
+      moveWasp(1);
+      moveWasp(2);
       break;
     case 3:
+      moveWasp(1);
+      moveWasp(2);
+      moveWasp(3);
       break;
     case 4:
+      moveWasp(1);
+      moveWasp(2);
+      moveWasp(3);
+      moveWasp(4);
       break;
   }
 }
@@ -179,13 +275,31 @@ void drawWasps() {
   } else {
     Sprites::drawSelfMasked(wasp1X, (int)wasp1Y, wasp, 0);
   }
+
+  if(wasp2Top) {
+    Sprites::drawSelfMasked(wasp2X, (int)wasp2Y, waspUpsideDown, 0);
+  } else {
+    Sprites::drawSelfMasked(wasp2X, (int)wasp2Y, wasp, 0);
+  }
+  
+  if(wasp3Top) {
+    Sprites::drawSelfMasked(wasp3X, (int)wasp3Y, waspUpsideDown, 0);
+  } else {
+    Sprites::drawSelfMasked(wasp3X, (int)wasp3Y, wasp, 0);
+  }
+  
+  if(wasp4Top) {
+    Sprites::drawSelfMasked(wasp4X, (int)wasp4Y, waspUpsideDown, 0);
+  } else {
+    Sprites::drawSelfMasked(wasp4X, (int)wasp4Y, wasp, 0);
+  }
 }
 
-void moveWasp(int waspX, double waspY, int waspNum) {
+void moveWasp(int waspNum) {
   switch(waspNum) {
     case 1:
       if(wasp1Y + waspHeight < arduboyTop || wasp1Y > arduboyBottom) {
-        wasp1X = 50;//place off screen incase there isn't a spot
+        wasp1X = -50;//place off screen incase there isn't a spot
         placeWasp(waspNum);
       } else {
         if(wasp1Top) {
@@ -196,8 +310,40 @@ void moveWasp(int waspX, double waspY, int waspNum) {
       }
       break;
     case 2:
+      if(wasp2Y + waspHeight < arduboyTop || wasp2Y > arduboyBottom) {
+        wasp2X = -50;//place off screen incase there isn't a spot
+        placeWasp(waspNum);
+      } else {
+        if(wasp2Top) {
+          wasp2Y = wasp2Y + 0.5;
+        } else {
+          wasp2Y = wasp2Y - 0.5;
+        }
+      }
+      break;
     case 3:
+    if(wasp3Y + waspHeight < arduboyTop || wasp3Y > arduboyBottom) {
+        wasp3X = -50;//place off screen incase there isn't a spot
+        placeWasp(waspNum);
+      } else {
+        if(wasp3Top) {
+          wasp3Y = wasp3Y + 0.5;
+        } else {
+          wasp3Y = wasp3Y - 0.5;
+        }
+      }
+      break;
     case 4:
+      if(wasp4Y + waspHeight < arduboyTop || wasp4Y > arduboyBottom) {
+        wasp4X = -50;//place off screen incase there isn't a spot
+        placeWasp(waspNum);
+      } else {
+        if(wasp4Top) {
+          wasp4Y = wasp4Y + 0.5;
+        } else {
+          wasp4Y = wasp4Y - 0.5;
+        }
+      }
       break;
   }
 }
@@ -229,15 +375,20 @@ int placeWasp(int waspNum) {
           return;
         case 2:
           wasp2X = x;
+          wasp2Top = isTop;
+          wasp2Y = y;
           return;
         case 3:
           wasp3X = x;
+          wasp3Top = isTop;
+          wasp3Y = y;
           return;
         case 4:
           wasp4X = x;
+          wasp4Top = isTop;
+          wasp4Y = y;
           return;
       }
-      return;
     }
   }
 }
@@ -249,23 +400,44 @@ bool notWithinObjectPath(int x) {
   int plus3X = wasp3X + waspWidth + 2;
   int plus4X = wasp4X + waspWidth + 2;
   
-  if(plus != wasp1X 
-    && plus != wasp2X 
-    && plus != wasp3X 
-    && plus != wasp4X
-    && plus1X != x
-    && plus2X != x
-    && plus3X != x
-    && plus4X != x) {
+  if((plus <= wasp1X || plus1X <= x)
+    && (plus <= wasp2X || plus2X <= x)
+    && (plus <= wasp3X || plus3X <= x)
+    && (plus <= wasp4X || plus4X <= x)) {
       return true;
     }
   return false; 
 }
+//============================================================================================
 
+
+//Hive Logic
+//============================================================================================
 void drawHive() {
   Sprites::drawSelfMasked(hiveX, hiveY, hive, 0);
 }
+//============================================================================================
 
+
+//Flower Logic
+//============================================================================================
+void drawFlower(){
+  if(!hasFlower) {
+    switch(flowerType) {
+      case 1:
+        Sprites::drawSelfMasked(flowerX, flowerY, flower1, 0);
+        break;
+      case 2:
+        Sprites::drawSelfMasked(flowerX, flowerY, flower2, 0);
+        break;
+    }
+  }
+}
+//============================================================================================
+
+
+//Bee Logic
+//============================================================================================
 void moveBee() {
   if (arduboy.pressed(UP_BUTTON) && beeY > arduboyTop) {
     beeY --;
@@ -288,3 +460,4 @@ void drawBee() {
     Sprites::drawSelfMasked(beeX, beeY, beeLeft, 0);
   }
 }
+//============================================================================================
