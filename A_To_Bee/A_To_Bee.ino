@@ -1,13 +1,11 @@
 /*
+ * Creators:
+ * Jenna Straughan
  * Alex Freer
  * 21/03/2020
  * 
  * TODO:
- * Pause bee movemet and Display lives
- * counter for points
- * increase difficulty with the number of points
  * sounds 
- * intro screen 
  * lose screen
  * credits screen
  * 
@@ -21,6 +19,7 @@
  
 #include <Arduboy2.h>
 #include "Tinyfont.h"
+#include <EEPROM.h>
 Arduboy2 arduboy;
 Tinyfont tinyfont = Tinyfont(arduboy.sBuffer, Arduboy2::width(), Arduboy2::height());
 
@@ -103,6 +102,8 @@ const unsigned char PROGMEM beeRight[] =
 
 //Game Variables
 int gameState = 0;
+int address = 1000;
+int highScore; 
 const int arduboyTop = 0;
 const int arduboyBottom = 64;
 const int arduboyLeft = 0;
@@ -129,15 +130,15 @@ int wasp1X = 20;
 double wasp1Y = arduboyTop - waspHeight;
 bool wasp1Top = true;
 
-int wasp2X = -50;
+int wasp2X = 45;
 double wasp2Y = arduboyBottom;
 bool wasp2Top = false;
 
-int wasp3X = -50;
+int wasp3X = 62;
 double wasp3Y = arduboyTop - waspHeight;
 bool wasp3Top = true;
 
-int wasp4X = -50;
+int wasp4X = 90;
 double wasp4Y = arduboyBottom;
 bool wasp4Top = false;
 
@@ -163,6 +164,12 @@ void setup() {
   //Seed the random number generator
   arduboy.initRandomSeed();
   arduboy.clear();
+  highScore = EEPROM.read(address); 
+  int i = 0;
+  if(highScore == 255) {
+    EEPROM.write(address, i);
+    highScore = EEPROM.read(address);
+  }
 }
 
 void loop() {
@@ -177,6 +184,10 @@ void loop() {
 
   switch(gameState) {
     case 0://TitleScreen
+      tinyfont.setCursor(30, 0);
+      tinyfont.print("High Score:");
+      tinyfont.setCursor(90, 0);
+      tinyfont.print(highScore);
       Sprites::drawSelfMasked(0, 0, Title_Screen, 0);
       if (arduboy.pressed(A_BUTTON)) {
         gameState = 1;
@@ -190,7 +201,7 @@ void loop() {
         arduboy.setCursor(76,32);
         arduboy.print(lives);
       } else {
-        if(lives <= 0) {//lose game
+        if(lives == 0) {//lose game
           gameState = 2;
         } else {
           moveBee();
@@ -207,6 +218,16 @@ void loop() {
       checkHiveCollision();
       break;
     case 2://lose Screen
+      gameState = 0;
+      lives = 3; 
+      beeX = arduboyLeft;
+      beeY = 10;
+      movingLeft = false;
+      if(points > highScore) {
+        EEPROM.write(address, points);
+        highScore = EEPROM.read(address);
+      }
+      points = 0;
       break;
   }
 
