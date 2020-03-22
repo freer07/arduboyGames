@@ -94,6 +94,7 @@ const int arduboyLeft = 0;
 const int arduboyRight = 128;
 int numOfWasps = 1;
 const int maxNumOfWasps = 4;
+int lives = 3;
 
 //Bee
 const int beeWidth = 11;
@@ -105,18 +106,26 @@ boolean movingLeft = false;
 //Wasps
 const int waspWidth = 13;
 const int waspHeight = 10;
-int wasp1X = 0;
-int wasp1Y = 0;
-int wasp2X = 0;
-int wasp2Y = 0;
-int wasp3X = 0;
-int wasp3Y = 0;
-int wasp4X = 0;
-int wasp4Y = 0;
+int wasp1X = 50;
+double wasp1Y = arduboyTop - waspHeight;
+bool wasp1Top = true;
+int wasp2X = -50;
+int wasp2Y = arduboyBottom;
+bool wasp2Top = false;
+int wasp3X = -50;
+int wasp3Y = arduboyTop - waspHeight;
+bool wasp3Top = true;
+int wasp4X = -50;
+int wasp4Y = arduboyBottom;
+bool wasp4Top = false;
 
 //hive
 const int hiveX = 0;
 const int hiveY = 25;
+
+//flower
+const int flowerWidth = 16;
+const int flowerHeight = 16;
 
 
 void setup() {
@@ -141,6 +150,8 @@ void loop() {
     case 1://Game
       moveBee();
       moveWasps();
+      drawWasps();
+      drawBee();
       drawHive();
       break;
   }
@@ -151,6 +162,7 @@ void loop() {
 void moveWasps() {
   switch(numOfWasps) {
     case 1:
+      moveWasp(wasp1X, wasp1Y, 1);
       break;
     case 2:
       break;
@@ -161,12 +173,97 @@ void moveWasps() {
   }
 }
 
-void moveWasp(int waspX, int waspY) {
+void drawWasps() {
+  if(wasp1Top) {
+    Sprites::drawSelfMasked(wasp1X, (int)wasp1Y, waspUpsideDown, 0);
+  } else {
+    Sprites::drawSelfMasked(wasp1X, (int)wasp1Y, wasp, 0);
+  }
+}
+
+void moveWasp(int waspX, double waspY, int waspNum) {
+  switch(waspNum) {
+    case 1:
+      if(wasp1Y + waspHeight < arduboyTop || wasp1Y > arduboyBottom) {
+        wasp1X = 50;//place off screen incase there isn't a spot
+        placeWasp(waspNum);
+      } else {
+        if(wasp1Top) {
+          wasp1Y = wasp1Y + 0.5;
+        } else {
+          wasp1Y = wasp1Y - 0.5;
+        }
+      }
+      break;
+    case 2:
+    case 3:
+    case 4:
+      break;
+  }
+}
+
+int placeWasp(int waspNum) {
+  for(int guess = 0; guess < 10; guess ++) {
+    int x = random(17, arduboyRight - waspWidth - flowerWidth);
+    double y;
+    int top = random(0,2);
+    bool isTop = true;
+
+    switch(top) {
+      case 0:
+        y = arduboyTop - waspHeight;
+        isTop = true;
+        break;
+      case 1:
+        y = arduboyBottom;
+        isTop = false;
+        break;
+    }
+    if(notWithinObjectPath(x)){ 
+      //setXVal
+      switch(waspNum) {
+        case 1:
+          wasp1X = x;
+          wasp1Top = isTop;
+          wasp1Y = y;
+          return;
+        case 2:
+          wasp2X = x;
+          return;
+        case 3:
+          wasp3X = x;
+          return;
+        case 4:
+          wasp4X = x;
+          return;
+      }
+      return;
+    }
+  }
+}
+
+bool notWithinObjectPath(int x) {
+  int plus = x + waspWidth + 2;
+  int plus1X = wasp1X + waspWidth + 2;
+  int plus2X = wasp2X + waspWidth + 2;
+  int plus3X = wasp3X + waspWidth + 2;
+  int plus4X = wasp4X + waspWidth + 2;
   
+  if(plus != wasp1X 
+    && plus != wasp2X 
+    && plus != wasp3X 
+    && plus != wasp4X
+    && plus1X != x
+    && plus2X != x
+    && plus3X != x
+    && plus4X != x) {
+      return true;
+    }
+  return false; 
 }
 
 void drawHive() {
-  Sprites::drawOverwrite(hiveX, hiveY, hive, 0);
+  Sprites::drawSelfMasked(hiveX, hiveY, hive, 0);
 }
 
 void moveBee() {
@@ -182,10 +279,12 @@ void moveBee() {
     beeX ++;
     movingLeft = false;
   }
-  
+}
+
+void drawBee() {
   if(!movingLeft) {
-    Sprites::drawOverwrite(beeX, beeY, beeRight, 0);
+    Sprites::drawSelfMasked(beeX, beeY, beeRight, 0);
   } else {
-    Sprites::drawOverwrite(beeX, beeY, beeLeft, 0);
+    Sprites::drawSelfMasked(beeX, beeY, beeLeft, 0);
   }
 }
