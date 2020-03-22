@@ -97,7 +97,8 @@ const int maxNumOfWasps = 4;
 int lives = 3;
 bool hasFlower = false;
 int points = 0;
-int pause = 0;
+const int pauseTime = 120;
+int pause = pauseTime;
 
 //Bee
 const int beeWidth = 11;
@@ -138,6 +139,9 @@ const int flowerX = arduboyRight - flowerWidth;
 int flowerY = 20;
 int flowerType = 1;
 
+//points
+const int pointsY = 60;
+
 
 void setup() {
   arduboy.begin();
@@ -166,13 +170,18 @@ void loop() {
         arduboy.setCursor(76,32);
         arduboy.print(lives);
       } else {
-        moveBee();
+        if(lives <= 0) {//lose game
+          gameState = 2;
+        } else {
+          moveBee();
+        }
       }
       moveWasps();
       drawWasps();
       drawBee();
       drawHive();
       drawFlower();
+      drawPoints();
       checkWaspCollision();
       checkFlowerCollision();
       checkHiveCollision();
@@ -184,6 +193,11 @@ void loop() {
   arduboy.display();
 }
 
+void drawPoints() {
+  tinyfont.setCursor(0, pointsY);
+  tinyfont.print(points);
+}
+
 //Check Collisions
 //============================================================================================
 void checkHiveCollision() {
@@ -192,7 +206,6 @@ void checkHiveCollision() {
     ((beeY + beeHeight > hiveY) && (beeY < hiveY + hiveHeight))) {
     if(hasFlower) {
       hasFlower = false;
-      points ++;
       flowerY = random(0, arduboyBottom - flowerHeight);
       flowerType = random(1,3);
       points ++;
@@ -205,7 +218,7 @@ void checkFlowerCollision() {
     ((beeY + beeHeight > flowerY) && (beeY < flowerY + flowerHeight))) {
       if(!hasFlower) {
         hasFlower = true; 
-        hiveY = random(0, arduboyBottom - hiveHeight);
+        hiveY = random(0, pointsY - hiveHeight);
       }
   }
 }
@@ -231,14 +244,11 @@ void checkWaspCollision() {
 }
 
 void waspCollision() {
-  pause = 120;
+  pause = pauseTime;
   lives --;
   beeX = 0;
   movingLeft = false;
   hasFlower = false;
-  if(lives <= 0) {//lose game
-    gameState = 2;
-  }
   //Play Sound
 }
 //============================================================================================
