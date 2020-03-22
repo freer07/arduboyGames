@@ -223,6 +223,7 @@ void loop() {
       beeX = arduboyLeft;
       beeY = 10;
       movingLeft = false;
+      pause = pauseTime;
       if(points > highScore) {
         EEPROM.write(address, points);
         highScore = EEPROM.read(address);
