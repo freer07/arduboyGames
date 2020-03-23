@@ -124,6 +124,10 @@ int beeY = 10;
 boolean movingLeft = false;
 
 //Wasps
+const int waspMiddleLeft = 4;
+const int waspMiddleRight = 9;
+const int waspWingTop = 5;
+const int upsideDownWingTop = 4;
 const int waspWidth = 13;
 const int waspHeight = 10;
 int wasp1X = 20;
@@ -266,23 +270,61 @@ void checkFlowerCollision() {
 }
 
 void checkWaspCollision() {
-  if(((beeX < wasp1X + waspWidth) && (beeX + beeWidth > wasp1X)) && 
-    ((beeY + beeHeight > wasp1Y) && (beeY < wasp1Y + waspHeight))) {
+    if(hitWaspBody(wasp1X, wasp1Y) || hitWaspWing(1, wasp1X, wasp1Y)) {
       waspCollision();
       return;
-    } else if(((beeX < wasp2X + waspWidth) && (beeX + beeWidth > wasp2X)) && 
-    ((beeY + beeHeight > wasp2Y) && (beeY < wasp2Y + waspHeight))) {
+    } else if(hitWaspBody(wasp2X, wasp2Y) || hitWaspWing(2, wasp2X, wasp2Y)) {
       waspCollision();
       return;
-    } else if(((beeX < wasp3X + waspWidth) && (beeX + beeWidth > wasp3X)) && 
-    ((beeY + beeHeight > wasp3Y) && (beeY < wasp3Y + waspHeight))) {
+    } else if(hitWaspBody(wasp3X, wasp3Y) || hitWaspWing(3, wasp3X, wasp3Y)) {
       waspCollision();
       return;
-    } else if(((beeX < wasp4X + waspWidth) && (beeX + beeWidth > wasp4X)) && 
-    ((beeY + beeHeight > wasp4Y) && (beeY < wasp4Y + waspHeight))) {
+    } else if(hitWaspBody(wasp4X, wasp4Y) || hitWaspWing(4, wasp4X, wasp4Y)) {
       waspCollision();
       return;
     }
+    
+}
+
+//Added and Subtracted 2 to "Tune" hit box on the bee
+bool hitWaspBody(int waspx, int waspy)  {
+  if(((beeX + 1 < waspx + waspMiddleRight) && (beeX + beeWidth - 1 > waspx + waspMiddleLeft)) && 
+    ((beeY + beeHeight > waspy) && (beeY < waspy + waspHeight))) {
+      return true;
+    }
+  return false;
+}
+
+//Added and Subtracted 2 to "Tune" hit box on the bee
+bool hitWaspWing(int waspNum, int waspx, int waspy) {
+  bool isUpsideDown;
+  switch(waspNum){
+    case 1:
+      isUpsideDown = wasp1Top;
+      break;
+    case 2:
+      isUpsideDown = wasp1Top;
+      break;
+    case 3:
+      isUpsideDown = wasp1Top;
+      break;
+    case 4:
+      isUpsideDown = wasp1Top;
+      break;
+  }
+
+  if(isUpsideDown){
+    if(((beeX + 1 < waspx + waspWidth) && (beeX + beeWidth - 1 > waspx)) && 
+    ((beeY + beeHeight > waspy) && (beeY < waspy + upsideDownWingTop))) {
+      return true;
+    }
+  } else {
+    if(((beeX + 1 < waspx + waspWidth) && (beeX + beeWidth - 1 > waspx)) && 
+    ((beeY + beeHeight > waspy + waspWingTop) && (beeY < waspy + waspHeight))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 void waspCollision() {
