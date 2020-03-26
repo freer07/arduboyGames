@@ -201,8 +201,19 @@ void setup() {
 }
 
 void loop() {
+  // play the tune if we aren't already
+  if (!tunes.playing())
+    tunes.playScore(score);
+    
+  //This prevents the arduboy from running too fast
+  if (!arduboy.nextFrame()) {
+    return;
+  }
+
+  arduboy.pollButtons();
+
   //Mute in any gamestate
-  if (arduboy.pressed(B_BUTTON)) {
+  if (arduboy.justPressed(B_BUTTON)) {
     if(muted) {
       arduboy.audio.on();
       muted = false;
@@ -212,18 +223,7 @@ void loop() {
     }
   }
   
-  // play the tune if we aren't already
-  if (!tunes.playing())
-    tunes.playScore(score);
-    
-  //This prevents the arduboy from running too fast
-  if (!arduboy.nextFrame()) {
-    return;
-  }
-  
   arduboy.clear();
-
-  arduboy.pollButtons();
 
   switch(gameState) {
     case 0://TitleScreen
